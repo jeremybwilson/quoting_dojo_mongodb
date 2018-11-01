@@ -1,0 +1,33 @@
+<% include partials/header %>
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <section>
+                        <form action="/user/new" method="post">
+                            <div class="form-group">
+                                <label for="name">Your name: </label>
+                                <input class='form-control' type="text" name="name" placeholder="Jeremy">
+                            </div>
+                            <div class="form-group">
+                                <label for="age">Your age: </label>
+                                <input class='form-control' type="text" name="age" placeholder="age">
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                            </div>
+                        </form>
+                    </section>
+                    <% if(users) { %>
+                    <section>
+                        <h3>Existing users</h3>
+                        <ul>
+                        <% for (user of users) { %>
+                            <li> User name: <a href='/user/<%= user._id %>'><%= user.name %></a> Age: <%= user.age %> | <a href="delete/<%= user._id %>">Delete user</a></li>
+                        <% } %>
+                        </ul>
+                    </section>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+<% include partials/footer %>
