@@ -2,27 +2,27 @@
         <div class="container">
             <div class="row">
                 <div class="col">
-                    <h1><%= title %></h1>
-                    <h3>Submitted Information</h3>
-                </div>
-            </div>
-            <div class="row">
-                <% if(users){ %>
-                <div class="col-3">
-                    <section class="results">
-                        <h3>User # <%= user.id %></h3>
-                        <p>Name: <%= user.name %></p>
-                        <p>Age: <%= user.age %></p>
-                        <a href="delete/<%= user.id%>">Delete this one</a>
-                    </section>
-                </div>
-            </div>
-                <%  } else { %>
-            <div class="row">
-                <div class="col"></div>
-                    <p class="error">There was an error.  No form data submitted.</p>
-                <% } %>
-                    <a href="/" class="btn btn-primary btn-sm" title="Go Back">Go Back</a>
+                    <% include partials/nav %>
+                    <h3>View Individual Quotes</h3>
+                    <% if(quotes){ %>
+                    <div class="row">
+                        <div class="col">
+                            <ul>
+                                <h3>"<%= quote.quote %>"</h3>
+                                <p>- <%= quote.author %> at <%= quote.date %> | <a href="/quotes/delete/<%= quote._id%>">Delete quote</a></p>
+                                <hr />
+                            </ul>
+                        </div>
+                    </div>
+                    <% } else { %>
+                    <div class="errors">
+                        <% if(messages.create_error) { %>
+                            <% for (const key of messages.create_error) { %>
+                                <p><%= key %></p>
+                            <% } %>
+                        <% } %>
+                    </div>
+                    <% } %>
                 </div>
             </div>
         </div>

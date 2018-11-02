@@ -1,5 +1,5 @@
 {
-  "name": "base_mongoose_app",
+  "name": "quoting_dojo_mongodb",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",

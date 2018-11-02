@@ -1,0 +1,35 @@
+<% include partials/header %>
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <% include partials/nav %>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <h1><%= title %></h1>
+                </div>
+            </div>
+            <div class="row">
+                <% if(quotes){ %>
+                <div class="col">
+                    <ul>
+                        <% for(quote of quotes) { %>
+                        <h3>"<%= quote.quote %>"</h3>
+                        <p>- <%= quote.author %> at <%= quote.date %> 
+                        <a href="/quotes/<%= quote._id%>">View quote</a></p>
+                        <hr />
+                        <% } %>
+                    </ul>
+                </div>
+            </div>
+                <%  } else { %>
+            <div class="row">
+                <div class="col"></div>
+                    <p class="error">There was an error.  No form data submitted.</p>
+                <% } %>
+                    <a href="/" class="btn btn-primary btn-sm" title="Go Back">Go Back</a>
+                </div>
+            </div>
+        </div>
+<% include partials/footer %>

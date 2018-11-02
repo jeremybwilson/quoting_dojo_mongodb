@@ -6,7 +6,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const {Schema} = mongoose;
 
-const port = process.env.PORT || 8000;
+const port = process.env.PORT || 9000;
 // invoke express and store the result in the variable app
 const app = express();
 
@@ -16,53 +16,71 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use(parser.urlencoded({ extended: true }));
 app.use(parser.json());
-app.use(flash());
+app.use(flash());  // for flashing error messaging to the user
+// app.use(flash());
 
-app.use(session({
-    secret:'superSekretKitteh',
+const sessionConfig = {
+    secret: 'superSekretKitteh',
     resave: false,
-    saveUninitialized: false,
-    cookie: {secure: false, maxAge: 60000}
-}));
+    name: 'session',
+    saveUninitialized: true,
+    cookie: { maxAge: 60000 }
+};
+app.use(session(sessionConfig));
 
-app.listen(port, () => console.log(`Express server listening on port ${port}`));
+// const server = app.listen(9000);
+app.listen(port, () => console.log(`Express server listening on port ${port}`));    // ES6 way
 
-let count = 0;
-let name = '';
+
 // mongodb connection
-mongoose.connect('mongodb://localhost:27017/basic_mongoose', { useNewUrlParser: true });
+mongoose.connect('mongodb://localhost:27017/quoting_dojo', { useNewUrlParser: true });
 mongoose.connection.on('connected', () => console.log('MongoDB connected'));
 
-// schema
-const UserSchema = new mongoose.Schema({
+// Create a schema for Users (UserSchema)
+const QuoteSchema = new mongoose.Schema({
 // const UserSchema = new mongoose.Schema({
-    name: {
-        type: String,
-        required: [true, 'a name is required'],
-        trim: true,
-      },
-    age: Number
+    author: { 
+        type: String, 
+        required: [true, 'A name is required'], 
+        minlength: 3, 
+        trim: true 
+    },
+    quote: { 
+        type: String, 
+        required: [true, 'A quote is required'], 
+        maxlength: 30 
+    },
+    date: { 
+        type: Date, 
+        default: Date.now 
+    }
 })
-mongoose.model('User', UserSchema); // We are setting this Schema in our Models as 'User'
-const User = mongoose.model('User', UserSchema) // We are retrieving this Schema from our Models, named 'User'
 
-//routing
-    //root route - display all
-app.get('/', (request, response) => {
+mongoose.model('Quote', QuoteSchema); // We are setting this Schema in our Models as 'User'
+const Quote = mongoose.model('Quote'); // We are retrieving this Schema from our Models, named 'User'
+// module.exports = mongoose.model('User');  // this is an example of how we would call the above line when we modularize
+
+// routing
+    // root route - display all
+app.get('/', (request, response) => {  
     console.log('getting to index');
+    response.render('index', {title: 'Quoting Dojo'})
+});
+
+app.get('/quotes', (request, response) => {
     // This is where we will retrieve the users from the database 
     // and include them in the view page we will be rendering.
-    User.find({})
-        .then((basic_mongoose) => {
-            const users = basic_mongoose;
-            console.log('successfully retrieved all users');
-            console.log(basic_mongoose);
+    Quote.find({})
+        .then((quoting_dojo) => {
+            const quotes = quoting_dojo;
+            console.log('successfully retrieved all quotes in the /quotes route');
+            // console.log(quoting_dojo);
             // response.render('user', {user});
-            response.render('index', {users, title: 'Express and Mongoose' })
+            response.render('quotes', {quotes, title: 'All Quotes' })
         })
         // if there is an error console.log that something went wrong!
         .catch(error => {
-            console.log('something went wrong');
+            console.log(`something went wrong`);
             for (let key in error.errors) {
                 request.flash('get_error', error.errors[key].message)
                 console.log(error.errors[key].message);
@@ -70,54 +88,51 @@ app.get('/', (request, response) => {
         });
 });
 
-// Add User Request 
-// When the user presses the submit button on index.ejs it should send a post request to '/users'.
-// In this route we should add the user to the database and then redirect to the root route (index view)
+// Add New Quote Request 
+// When the user presses the submit button on index.ejs it should send a post request to '/quotes'.
+// In this route we should add the quote to the database and then redirect to the root route (index view)
 
-// create new user form
-app.post('/user/new', function(request, response) {
+app.post('/quotes', (request, response) => {
     console.log("POST DATA", request.body);
     // This is where we would add the user from req.body to the database.
-    // create a new User with the name and age corresponding to those from req.body
-    // const user = new User({name: request.body.name, age: request.body.age});
-
-    User.create(request.body)
-        .then(user => {
-            console.log('created ', user);
-            console.log('successfully added a user!');
-            response.redirect('/');
+    // create a new Quote with the name and quote corresponding to those from request.body
+    Quote.create(request.body)
+        .then(quote => {
+            console.log(`successfully created a quote! ${quote}`);
+            response.redirect('/quotes');
         })
         .catch(error => {
             for (let key in error.errors) {
                 request.flash('create_error', error.errors[key].message);
             }
-            console.log('something went wrong');
-            response.redirect('/user/new');
-        });
-})
-
-app.get('/user/:_id', (request, response) => {
-    const which = request.params._id;
-    User.find({_id:which})
-        .then((basic_mongoose) => {
-            console.log(basic_mongoose);
-            users = basic_mongoose;
-            response.render('view', {user, title: 'View user page'});
-        })
-        // if there is an error console.log that something went wrong!
-        .catch(error => {
-            console.log('something went wrong');
-            for (let key in error.errors) {
-                request.flash('get_error', error.errors[key].message)
-                console.log(error.errors[key].message);
-            }
+            console.log(`something went wrong in this /quotes route`);
             response.redirect('/');
         });
 });
 
-app.get('/user/delete/:_id', (request,response) => {
+app.get('/quotes/:_id', (request, response) => {
     const which = request.params._id;
-    User.remove({_id:which})
+    Quote.find({_id:which})
+        .then((quoting_dojo) => {
+            quotes = quoting_dojo;
+            // console.log('quotes: ', quotes);
+            response.render('view', {quote, title: 'Quote page'});
+            // console.log('passed the response.render');
+        })
+        // if there is an error console.log that something went wrong!
+        .catch(error => {
+            console.log('something went wrong in the individual quotes route');
+            for (let key in error.errors) {
+                request.flash('get_error', error.errors[key].message)
+                console.log(error.errors[key].message);
+            }
+            response.redirect('/quotes');
+        });
+});
+
+app.get('/quotes/delete/:_id', (request,response) => {
+    const which = request.params._id;
+    Quote.remove({_id:which})
         .then(() => {
             console.log('deleted successfully')
             response.redirect('/');
